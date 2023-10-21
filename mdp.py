@@ -18,7 +18,7 @@ def compute_prob(t):
 
 
 
-mem2 = {}
+
 class MDP():
     def __init__(self,c,r):
         """
@@ -28,6 +28,7 @@ class MDP():
         self.r = r #reward vector
         self.value = {} #value of each state
         self.opti = {} #optimal move at each state, None if terminal state
+        self.mem2 = {} #memorisation of value for a given number of dices
 
     def evaluate(self, state : State):
         """
@@ -85,8 +86,8 @@ class MDP():
             s = 0
 
             state2 = (new_score, tuple(new_used), nb_dices-count)
-            if state2 in mem2:
-                s = mem2[state2]
+            if state2 in self.mem2:#memoization before rolling the dices
+                s = self.mem2[state2]
             
             else:
                 dices = list(new_used)
@@ -97,6 +98,7 @@ class MDP():
                 for new_dices in it:
                     prob = compute_prob(new_dices)
 
+                    #reduce the number of states by making the dices rolled "more similar" when they are equivalent
                     m = min(new_used)
                     new_dices = tuple(m if value in new_used else value for value in new_dices)
 
@@ -105,7 +107,8 @@ class MDP():
                     new_value = self.explore(new_state)
 
                     s += new_value * prob
-                    mem2[state2] = s
+
+                self.mem2[state2] = s
 
             if s > max_value:
                 max_value = s
@@ -128,8 +131,11 @@ class MDP():
         Dynamic programming starting from all possibles rolls of 8 dices
         """
         it = itertools.combinations_with_replacement([1,2,3,4,5,6], 8)
+        k = 0
         for dices in it:
-            print(dices)
+            if dices[0]>k:
+                print(k)
+                k+=1
             state = State(dices, 0, set())
             self.explore(state)
 
@@ -139,7 +145,11 @@ class MDP():
         """
         it = itertools.combinations_with_replacement([1,2,3,4,5,6], 8)
         p_total = 0
+        k=0
         for dices in it:
+            if dices[0]>k:
+                print(k)
+                k+=1
             prob = compute_prob(dices)
             state = State(dices, 0, set())
             p_total += prob * self.value[state]
