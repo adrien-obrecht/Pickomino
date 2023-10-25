@@ -19,7 +19,7 @@ def compute_prob(t):
     return mem[t]
 
 
-
+EPSILON=1e-5
 
 
 class MDP():
@@ -28,6 +28,7 @@ class MDP():
         """
         Initialization
         """
+        assert c<=0, "c should be negative"
         self.c = c #value when lost
         self.r = r #reward vector
         self.value = {} #value of each state
@@ -45,7 +46,8 @@ class MDP():
             #did not get a worm
             return self.c
         else:
-            return self.r[state.getScore()-21]
+            #print(max(state.getScore(),36)-21,self.r)
+            return self.r[min(state.getScore(),36)-21]#supposes that we used the max on r
 
     def explore(self, state : DiceState):
         """
@@ -62,8 +64,11 @@ class MDP():
 
         # check for terminal state
         if nb_dices==0:
-            # we gathered all the dices
-            self.opti[state] = Move(MoveType.LOSE)
+            # we gathered all the dices, we might have won
+            if state.score>=21 and 6 in state.used:
+                self.opti[state] = Move(MoveType.STOP,tile=min(36,state.score)-21)
+            else:
+                self.opti[state] = Move(MoveType.LOSE)
             self.value[state] = self.evaluate(state)
             return self.value[state]
 
@@ -94,22 +99,22 @@ class MDP():
                 s = self.mem2[state2]
             
             else:
-                dices = list(new_used)
+                """dices = list(new_used)
                 for i in range(6):
                     if i+1 not in dices:
-                        dices.append(i+1)
-                it = itertools.combinations_with_replacement(dices, nb_dices-count)
+                        dices.append(i+1)"""
+                it = itertools.combinations_with_replacement([1,2,3,4,5,6], nb_dices-count)
                 for new_dices in it:
                     prob = compute_prob(new_dices)
 
                     #reduce the number of states by making the dices rolled "more similar" when they are equivalent
-                    m = min(new_used)
-                    new_dices = tuple(m if value in new_used else value for value in new_dices)
+                    #m = min(new_used)
+                    #new_dices = tuple(m if value in new_used else value for value in new_dices)
 
                     new_state = DiceState(new_dices, new_score, new_used)
 
                     new_value = self.explore(new_state)
-
+                    
                     s += new_value * prob
 
                 self.mem2[state2] = s
@@ -122,9 +127,16 @@ class MDP():
 
         if stop_value > max_value:
             self.value[state] = stop_value
-            best_tile = np.argmin(self.r[:state.score-20])
+            if state.score<21:#floating point error
+                #print(stop_value,max_value,state)
+                self.value[state] = max_value
+                self.opti[state] = Move(MoveType.CONTINUE, dice=max_idx)
+            else:
+                #we return the truncated value of the score, then the player will find the best tile corresponding to this stop_value
+                #because the player has the game state and we don't
+                best_tile = min(state.score-21,15)
 
-            self.opti[state] = Move(MoveType.STOP, tile=best_tile)
+                self.opti[state] = Move(MoveType.STOP, tile=best_tile)
         else:
             self.value[state] = max_value
             self.opti[state] = Move(MoveType.CONTINUE, dice=max_idx)

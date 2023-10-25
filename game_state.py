@@ -28,6 +28,7 @@ class TileState:
     def __repr__(self):
         return f"{self.status} ({self.worm})"
 
+#class for the 1 player game
 class GameState:
     def __init__(self):
         self.grid : list[TileState] = [TileState(i, i//4 + 1) for i in range(16)]
@@ -65,7 +66,7 @@ class GameState:
             for i in range(15, -1, -1):
                 if self.grid[i].status == Tile.FACE_UP:
                     if i == tile_returned:
-                        continue  # if we had the biggest one, then we turn the one after
+                        return  # if we had the biggest one, then we don't turn it
                     self.grid[i].status = Tile.FACE_DOWN
                     return
 
@@ -80,13 +81,19 @@ class GameState:
 
     # return False if the move is invalid
     def make_move(self, move : Move) -> bool:
+        #a player either decides to stop, has lost, or decides to continue
+
+        #assumes that when the player stops, he knows which tile we wants to get
         if move.move_type == MoveType.STOP:
             player_index = int(self.player_turn.value) - 1 # Current player
-            opponent_index = int(not self.player_turn.value) # Opponent player
+            opponent_index = int(not player_index) # Opponent player <----------
 
             if move.tile + 21 > self.dice_state.score:
-                # TODO check if it has a worm aswell
                 print(f"Can't choose tile {move.tile} with a score of {self.dice_state.score}")
+                return False
+            
+            if 6 not in self.dice_state.used:
+                print(f"Can't choose tile {move.tile} with no worms")
                 return False
 
             if self.grid[move.tile].status == Tile.OWNED:
@@ -123,13 +130,13 @@ class GameState:
                 return False
             n = self.dice_state.dices.count(move.dice)
             self.dice_state.used.add(move.dice)
-            dice_score = max(5, move.dice)
+            dice_score = min(5, move.dice)
             self.dice_state.score += n * dice_score
-            self.dice_state.dices = generate_random_dices(len(self.dice_state.dices) - n)
+            self.dice_state.dices = generate_random_dices(len(self.dice_state.dices) - n)#modifies the dictionary key
             return True
 
     def get_winner(self) -> PlayerTurn:
-        # TODO draws?
+        # TODO draws? -> not possible
         if not self.player_tiles[1]:
             return PlayerTurn.PLAYER_1
         if not self.player_tiles[0]:

@@ -22,7 +22,7 @@ def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
             
             print(move)
             print()
-            time.sleep(1)
+            #time.sleep(1)
 
         possible = game.make_move(move)
 
@@ -30,7 +30,8 @@ def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
             # the move was invalid, the other player wins
             game.switch_turn()
             return game.player_turn
-
+    if debug:
+        print("FIIIIINNNIIIIII")
     return game.get_winner()
 
 """

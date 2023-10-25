@@ -19,7 +19,7 @@ class GreedyPlayer(Player):
             if score > i+21 and game.grid[i].status == Tile.FACE_UP:
                 best_tile = i
             
-        if best_tile is not None:
+        if best_tile is not None and 6 in game.dice_state.used:
             return Move(MoveType.STOP, tile=best_tile)
         
         

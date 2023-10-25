@@ -11,8 +11,7 @@ class DiceState():
         self._hash = None
 
     def __hash__(self) -> int:
-        if self._hash is None:
-            self._hash = hash((self.dices, tuple(self.used), self.score))
+        self._hash = hash((self.dices, tuple(self.used), self.score))
         return self._hash
 
     def __eq__(self, other):
