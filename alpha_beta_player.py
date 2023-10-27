@@ -51,13 +51,18 @@ class AlphaBetaPlayer(Player):
         #if we are at the first dices roll use the MDP
         if nb_dice==8:
             r,c = self.get_r(game)
-            if (tuple(r),c) in AlphaBetaPlayer.memRC:
-                print("reuse")
-            else:
-                AlphaBetaPlayer.memRC[(tuple(r),c)]=None
+            # if (tuple(r),c) in AlphaBetaPlayer.memRC:
+            #     #print("reuse")
+            #     self.current_MDP = AlphaBetaPlayer.memRC[(tuple(r),c)]
+            #     self.current_MDP.explore(dice_state)
+            # else:
+            #     self.current_MDP = MDP(c,r)
+            #     self.current_MDP.explore(dice_state)
+            #     AlphaBetaPlayer.memRC[(tuple(r),c)] = self.current_MDP
             #no mem for now
             self.current_MDP = MDP(c,r)
             self.current_MDP.explore(dice_state)
+        
         # print("start dico")
         # for i in self.current_MDP.opti:
         #     print(i,self.current_MDP.opti[i])
