@@ -2,6 +2,7 @@ from game_state import GameState, Tile
 from move import Move, MoveType
 from mdp import MDP
 from player import Player
+from constants import *
 
 class AlphaBetaPlayer(Player):
 
@@ -22,14 +23,14 @@ class AlphaBetaPlayer(Player):
         if len(game.player_tiles[player_index])>0:
             c = self.alpha*game.player_tiles[player_index][-1].worm
 
-        r = [0]*16
+        r = [0]*NUM_TILES
         maxi = -(1<<30)
 
         opponent_stack = game.player_tiles[opponent_index]
 
-        for i in range(16):
+        for i in range(NUM_TILES):
             if game.grid[i].status == Tile.FACE_UP:
-                r[i] = i//4+1
+                r[i] = i//STEP_SIZE+1
                 maxi = max(maxi,r[i])
             if game.grid[i].status == Tile.OWNED and len(opponent_stack)>0 and opponent_stack[-1].index == i:
                 r[i] = 2*self.beta*opponent_stack[-1].worm
@@ -49,7 +50,7 @@ class AlphaBetaPlayer(Player):
         player_index = int(game.player_turn.value) - 1 # Current player
         opponent_index = int(not player_index) # Opponent player
         #if we are at the first dices roll use the MDP
-        if nb_dice==8:
+        if nb_dice==NUM_DICES:
             r,c = self.get_r(game)
             # if (tuple(r),c) in AlphaBetaPlayer.memRC:
             #     #print("reuse")

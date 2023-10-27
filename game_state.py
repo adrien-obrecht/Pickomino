@@ -1,6 +1,7 @@
 from enum import Enum
 from  dice_state import *
 from move import Move, MoveType
+from constants import *
 
 class Tile(Enum):
     FACE_UP = 1
@@ -31,9 +32,9 @@ class TileState:
 #class for the 1 player game
 class GameState:
     def __init__(self):
-        self.grid : list[TileState] = [TileState(i, i//4 + 1) for i in range(16)]
+        self.grid : list[TileState] = [TileState(i, i//STEP_SIZE + 1) for i in range(NUM_TILES)]
         self.player_turn : PlayerTurn = PlayerTurn.PLAYER_1
-        self.dice_state : DiceState = DiceState(generate_random_dices(8), 0, set())
+        self.dice_state : DiceState = DiceState(generate_random_dices(NUM_DICES), 0, set())
         self.player_tiles : tuple[list[TileState], list[TileState]] = [[], []]
         
     def __repr__(self):
@@ -41,17 +42,17 @@ class GameState:
         r += f"{self.player_turn}'s turn:\n"
         r += f"Dice State: {self.dice_state}\n"
         r += "Grid State: \n"
-        for i in range(16):
+        for i in range(NUM_TILES):
             r += f"{self.grid[i].status} "
         r += "\n"
-        for i in range(16):
+        for i in range(NUM_TILES):
             r += f"{self.grid[i].worm} "
         r += f"\nPlayer 1 Tiles: {[t.index for t in self.player_tiles[0]]}"
         r += f"\nPlayer 2 Tiles: {[t.index for t in self.player_tiles[1]]}"
         return r
     
     def is_finished(self):
-        for i in range(16):
+        for i in range(NUM_TILES):
             if self.grid[i].status == Tile.FACE_UP:
                 return False
         return True
@@ -63,7 +64,7 @@ class GameState:
             tile_returned = self.player_tiles[player_index].pop()
             self.grid[tile_returned.index].status = Tile.FACE_UP
             # self.tile_available += 1
-            for i in range(15, -1, -1):
+            for i in range(NUM_TILES-1, -1, -1):
                 if self.grid[i].status == Tile.FACE_UP:
                     if i == tile_returned:
                         return  # if we had the biggest one, then we don't turn it
@@ -76,7 +77,7 @@ class GameState:
             self.player_turn = PlayerTurn.PLAYER_2  
         else:
             self.player_turn = PlayerTurn.PLAYER_1
-        self.dice_state = DiceState(generate_random_dices(8), 0, set())
+        self.dice_state = DiceState(generate_random_dices(NUM_DICES), 0, set())
 
 
     # return False if the move is invalid
@@ -88,7 +89,7 @@ class GameState:
             player_index = int(self.player_turn.value) - 1 # Current player
             opponent_index = int(not player_index) # Opponent player <----------
 
-            if move.tile + 21 > self.dice_state.score:
+            if move.tile + MIN_TILE > self.dice_state.score:
                 print(f"Can't choose tile {move.tile} with a score of {self.dice_state.score}")
                 return False
             

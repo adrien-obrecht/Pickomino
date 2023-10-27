@@ -5,6 +5,7 @@ import numpy as np
 
 from dice_state import *
 from move import *
+from constants import *
 
 mem = {}
 def compute_prob(t):
@@ -18,8 +19,6 @@ def compute_prob(t):
     mem[t] = int(res)/6**n
     return mem[t]
 
-
-EPSILON=1e-5
 
 
 class MDP():
@@ -39,7 +38,7 @@ class MDP():
         """
         Gives the reward for a given score
         """
-        if state.getScore() < 21:
+        if state.getScore() < MIN_TILE:
             #the score is too low
             return self.c
         elif 6 not in state.getUsedDices():
@@ -47,7 +46,7 @@ class MDP():
             return self.c
         else:
             #print(max(state.getScore(),36)-21,self.r)
-            return self.r[min(state.getScore(),36)-21]#supposes that we used the max on r
+            return self.r[min(state.getScore(),MAX_TILE)-MIN_TILE]#supposes that we used the max on r
 
     def explore(self, state : DiceState):
         """
@@ -65,8 +64,8 @@ class MDP():
         # check for terminal state
         if nb_dices==0:
             # we gathered all the dices, we might have won
-            if state.score>=21 and 6 in state.used:
-                self.opti[state] = Move(MoveType.STOP,tile=min(36,state.score)-21)
+            if state.score>=MIN_TILE and 6 in state.used:
+                self.opti[state] = Move(MoveType.STOP,tile=min(MAX_TILE,state.score)-MIN_TILE)
             else:
                 self.opti[state] = Move(MoveType.LOSE)
             self.value[state] = self.evaluate(state)
@@ -134,7 +133,7 @@ class MDP():
             else:
                 #we return the truncated value of the score, then the player will find the best tile corresponding to this stop_value
                 #because the player has the game state and we don't
-                best_tile = min(state.score-21,15)
+                best_tile = min(state.getScore(),MAX_TILE)-MIN_TILE
 
                 self.opti[state] = Move(MoveType.STOP, tile=best_tile)
         else:
@@ -146,9 +145,9 @@ class MDP():
 
     def explore_all(self):
         """
-        Dynamic programming starting from all possibles rolls of 8 dices
+        Dynamic programming starting from all possibles rolls of NUM_DICES dices
         """
-        it = itertools.combinations_with_replacement([1,2,3,4,5,6], 8)
+        it = itertools.combinations_with_replacement([1,2,3,4,5,6], NUM_DICES)
         k = 0
         for dices in it:
             if dices[0]>k:
@@ -161,7 +160,7 @@ class MDP():
         """
         Computes the value of the game, needs to be called after explore_all
         """
-        it = itertools.combinations_with_replacement([1,2,3,4,5,6], 8)
+        it = itertools.combinations_with_replacement([1,2,3,4,5,6], NUM_DICES)
         p_total = 0
         k=0
         for dices in it:

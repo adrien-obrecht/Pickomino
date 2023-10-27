@@ -1,4 +1,5 @@
 from enum import Enum
+from constants import *
 
 class MoveType(Enum):
     LOSE = 1
@@ -10,7 +11,7 @@ class Move:
         assert isinstance(move_type, MoveType), "Invalid move type!"
 
         if move_type == MoveType.STOP:
-            assert tile is not None and 0 <= tile <= 15, "Invalid Tile! Range is 0 to 15."
+            assert tile is not None and 0 <= tile <= NUM_TILES-1, "Invalid Tile! Range is 0 to 15."
 
         if move_type == MoveType.CONTINUE:
             assert dice is not None and 1 <= dice <= 6, "Invalid Dice! Range is 1 to 6."

@@ -1,5 +1,6 @@
 from game_state import GameState, Tile
 from move import Move, MoveType
+from constants import *
 
 class Player:
     def __init__(self):
@@ -15,8 +16,8 @@ class GreedyPlayer(Player):
     def act(self, game : GameState) -> Move:
         score =  game.dice_state.score
         best_tile = None
-        for i in range(16):
-            if score > i+21 and game.grid[i].status == Tile.FACE_UP:
+        for i in range(NUM_TILES):
+            if score > i+MIN_TILE and game.grid[i].status == Tile.FACE_UP:
                 best_tile = i
             
         if best_tile is not None and 6 in game.dice_state.used:
