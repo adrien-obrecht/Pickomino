@@ -2,21 +2,21 @@
 from alpha_beta_player import *
 import numpy as np
 from game_state import *
+from run_game import *
 
 class FeatureMap:
 
-    #an action is 1,...6 or 'S'
-    def phi(self,state : GameState, action) -> np.array(float):
+    def phi(self,state : GameState, action:Move) -> np.array(float):
         pass
 
-class Reinforce:
+class Reinforce(Player):
     #uses the REINFORCE algorithm (policy gradient) against a fixed alpha-beta adversary
 
-    def __init__(self,w0,alpha,beta,fm:FeatureMap,gamma):
+    def __init__(self,w0,alpha,beta,fm,gamma):
         self.w =  w0
         self.N = len(w0)
         self.adv = AlphaBetaPlayer(alpha,beta)
-        self.phi = fm.phi
+        self.phi = fm
         self.gamma = gamma
 
     def pi(self,state:GameState):
@@ -31,17 +31,45 @@ class Reinforce:
         p /= sum
         return (actions,p)
 
-    def grad_log_pi(self,state:GameState,action):
-        res = self.phi(state,action)
+    def grad_log_pi(self,state:GameState,move:Move):
+        res = self.phi(state,move)
         actions, proba = self.pi(state)
         for i in range(len(actions)):
-            res = res - proba[i]*self.phi(state,action)
+            res = res - proba[i]*self.phi(state,actions[i])
         return res
+    
+    def act(self,game:GameState) -> Move:
+        #the learning player plays
+        actions,proba = self.pi(game)
+        a = random.choices(actions,proba)
 
+        if a=='S':
+            #we need a score
+            player_index = int(game.player_turn.value) - 1 # Current player
+            opponent_index = int(not player_index) # Opponent player
+            #ATTENTION AUX INDEX
+            score = game.dice_state.score #
+            status = game.grid[score].status
+            opponent_stack = game.player_tiles[opponent_index]
+
+            tile = max(MAX_TILE,score)-MIN_TILE
+
+            #repetition in the code
+            if status == Tile.FACE_DOWN or (status== Tile.OWNED and (len(opponent_stack) == 0 or opponent_stack[-1].index != move.tile)):
+                #find the actual tile that the player chooses
+                found = False
+                for i in range(tile,-1,-1):
+                    if game.grid[i].status==Tile.FACE_UP:
+                        move = Move(MoveType.STOP, tile=i)
+                        return move
+                return Move(MoveType.LOSE)
+            
+            return Move(MoveType.STOP,tile=tile)
+        
+        return Move(MoveType.CONTINUE,dice=a)
     
     def train(self, num_games, alpha):
-        #need to define rewards in a way
-        #simulate the traj and then backtrackl
+
         for h in range(num_games):
 
             game = GameState()
@@ -54,38 +82,9 @@ class Reinforce:
                 if game.player_turn == PlayerTurn.PLAYER_1:
                     move = self.adv.act(game)
                 else:
-                    #the learning player plays
-                    actions,proba = self.pi(game)
-                    a = random.choices(actions,proba)
+                    move = self.learning_player_move(game)
 
-                    list_grad.append(self.grad_log_pi(game,a))
-
-                    if a=='S':
-                        #we need a score
-                        player_index = int(game.player_turn.value) - 1 # Current player
-                        opponent_index = int(not player_index) # Opponent player
-                        #ATTENTION AUX INDEX
-                        score = game.dice_state.score #
-                        status = game.grid[score].status
-                        opponent_stack = game.player_tiles[opponent_index]
-
-                        tile = max(MAX_TILE,score)-MIN_TILE
-
-                        #repetition in the code
-                        if status == Tile.FACE_DOWN or (status== Tile.OWNED and (len(opponent_stack) == 0 or opponent_stack[-1].index != move.tile)):
-                            #find the actual tile that the player chooses
-                            found = False
-                            for i in range(tile,-1,-1):
-                                if game.grid[i].status==Tile.FACE_UP:
-                                    move = Move(MoveType.STOP, tile=i)
-                                    found = True
-                                    break
-                            if not found:
-                                move = Move(MoveType.LOSE)
-                        else:
-                            move = Move(MoveType.STOP,tile=tile)
-                    else:
-                        move = Move(MoveType.CONTINUE,dice=a)
+                    list_grad.append(self.grad_log_pi(game,move))
                 
                 possible = game.make_move(move)
 
@@ -115,7 +114,20 @@ class Reinforce:
                 G += R
                 G *= self.gamma
 
-
-            w = w + alpha*gradJ
+            self.w = self.w + alpha*gradJ
         return
+    
+    #evaluates the performance of the learning player over num_games games
+    def evaluate(self, num_games, debug=False):
+        nb_wins = 0
+
+        for h in range(num_games):
+
+            winner = run_game(self.adv,self,debug)
+
+            if winner == PlayerTurn.PLAYER_2:
+                nb_wins+=1
+        return nb_wins/num_games
+
+
 

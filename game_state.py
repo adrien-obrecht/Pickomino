@@ -153,7 +153,7 @@ class GameState:
     
     def possible_actions(self):
         #returns the list of possible actions in the current game state, ie dices the player can pick and stop if possible
-        actions = self.dice_state.getChoices()
+        actions = [Move(MoveType.CONTINUE,dice=d) for d in self.dice_state.getChoices()]
         can_stop = False
         score = self.dice_state.score
 
@@ -165,12 +165,12 @@ class GameState:
 
             opponent_stack = self.player_tiles[opponent_index]
             if len(opponent_stack) > 0 and opponent_stack[-1].index == tile:
-                actions.append('S')
+                actions.append(Move(MoveType.STOP,tile=tile))
                 return actions
 
             for i in range(tile, -1,-1):
                 if self.grid[i].status == Tile.FACE_UP:
-                    actions.append('S')
+                    actions.append(Move(MoveType.STOP,tile=i))
                     return actions
         
         return actions

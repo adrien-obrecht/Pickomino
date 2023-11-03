@@ -26,6 +26,7 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[flo
     
     for t in range(1,num_games+1):
         # Select the pair with the highest upper confidence bound
+        print("[{}]".format(t),end="")
         ucb_values = []
         for i in range(num_pairs):
             if counts[i]==0:
@@ -56,6 +57,10 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[flo
         probs.append(wins[i] / counts[i])
 
     best_pair = bandit_pairs[np.argmax(probs)]
+
+    print("Probabilities:")
+    for i in range(num_pairs):
+        print(bandit_pairs[i], probs[i])
     
     print(f"The best pair is {best_pair}, that wins with probability {max(probs)}")
 
