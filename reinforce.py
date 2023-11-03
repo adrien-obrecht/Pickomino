@@ -41,21 +41,27 @@ class Reinforce(Player):
     def act(self,game:GameState) -> Move:
         #the learning player plays
         actions,proba = self.pi(game)
-        a = random.choices(actions,proba)
+        #print(proba)
+        if len(proba)==0:
+            return Move(MoveType.LOSE)
+        
+        a = random.choices(actions,weights=proba,k=1)[0]
 
-        if a=='S':
+        if a.move_type==MoveType.STOP:
             #we need a score
             player_index = int(game.player_turn.value) - 1 # Current player
             opponent_index = int(not player_index) # Opponent player
             #ATTENTION AUX INDEX
-            score = game.dice_state.score #
-            status = game.grid[score].status
+            score = game.dice_state.score 
+            tile = min(MAX_TILE,score)-MIN_TILE
+
+            status = game.grid[tile].status
             opponent_stack = game.player_tiles[opponent_index]
 
-            tile = max(MAX_TILE,score)-MIN_TILE
+            
 
             #repetition in the code
-            if status == Tile.FACE_DOWN or (status== Tile.OWNED and (len(opponent_stack) == 0 or opponent_stack[-1].index != move.tile)):
+            if status == Tile.FACE_DOWN or (status== Tile.OWNED and (len(opponent_stack) == 0 or opponent_stack[-1].index != a.tile)):
                 #find the actual tile that the player chooses
                 found = False
                 for i in range(tile,-1,-1):
@@ -66,12 +72,15 @@ class Reinforce(Player):
             
             return Move(MoveType.STOP,tile=tile)
         
-        return Move(MoveType.CONTINUE,dice=a)
+        return a
     
     def train(self, num_games, alpha):
 
         for h in range(num_games):
-
+            if h%100==0:
+                print(h)
+                print(self.w)
+            
             game = GameState()
             rewards = []
             gradJ = np.zeros(self.N)
@@ -82,7 +91,7 @@ class Reinforce(Player):
                 if game.player_turn == PlayerTurn.PLAYER_1:
                     move = self.adv.act(game)
                 else:
-                    move = self.learning_player_move(game)
+                    move = self.act(game)
 
                     list_grad.append(self.grad_log_pi(game,move))
                 
@@ -114,7 +123,7 @@ class Reinforce(Player):
                 G += R
                 G *= self.gamma
 
-            self.w = self.w + alpha*gradJ
+            self.w = self.w + alpha/(h+10)*gradJ
         return
     
     #evaluates the performance of the learning player over num_games games

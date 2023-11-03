@@ -160,7 +160,8 @@ class GameState:
         player_index = int(self.player_turn.value) - 1 # Current player
         opponent_index = int(not player_index) # Opponent player
 
-        if score > MIN_TILE:
+        #condition for stopping making sense
+        if score > MIN_TILE and 6 in self.dice_state.getUsedDices():
             tile = min(MAX_TILE,score)-MIN_TILE
 
             opponent_stack = self.player_tiles[opponent_index]
