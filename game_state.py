@@ -87,7 +87,7 @@ class GameState:
         #assumes that when the player stops, he knows which tile we wants to get
         if move.move_type == MoveType.STOP:
             player_index = int(self.player_turn.value) - 1 # Current player
-            opponent_index = int(not player_index) # Opponent player <----------
+            opponent_index = int(not player_index) # Opponent player 
 
             if move.tile + MIN_TILE > self.dice_state.score:
                 print(f"Can't choose tile {move.tile} with a score of {self.dice_state.score}")
@@ -150,3 +150,27 @@ class GameState:
         if (s1, m1) > (s2, m2):
             return PlayerTurn.PLAYER_1
         return PlayerTurn.PLAYER_2
+    
+    def possible_actions(self):
+        #returns the list of possible actions in the current game state, ie dices the player can pick and stop if possible
+        actions = self.dice_state.getChoices()
+        can_stop = False
+        score = self.dice_state.score
+
+        player_index = int(self.player_turn.value) - 1 # Current player
+        opponent_index = int(not player_index) # Opponent player
+
+        if score > MIN_TILE:
+            tile = min(MAX_TILE,score)-MIN_TILE
+
+            opponent_stack = self.player_tiles[opponent_index]
+            if len(opponent_stack) > 0 and opponent_stack[-1].index == tile:
+                actions.append('S')
+                return actions
+
+            for i in range(tile, -1,-1):
+                if self.grid[i].status == Tile.FACE_UP:
+                    actions.append('S')
+                    return actions
+        
+        return actions

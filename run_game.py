@@ -6,10 +6,10 @@ def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
     """
     Runs a game between two players
     """
-    # create a connect4 game
+    # create a Pickomino game
     game = GameState()
 
-    # loop until the game is drawn
+    # loop until the game is over
     while not game.is_finished():
         if game.player_turn == PlayerTurn.PLAYER_1:
             move = player1.act(game)
@@ -34,17 +34,3 @@ def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
         print("FIIIIINNNIIIIII")
     return game.get_winner()
 
-"""
-
-# create an MCTS and AlphaBeta player
-#player1 = alpha_beta.AlphaBeta(depth = 8)
-player2 = alpha_beta.AlphaBeta(depth = 8)
-
-# UNCOMMENT THIS TO TEST YOUR PLAYER
-player1 = mcts.MCTS(iterations = 1000)
-
-result = run_game(player1, player2)
-if result == 0:
-    print("player1 wins")
-else:
-    print("player2 wins")"""
