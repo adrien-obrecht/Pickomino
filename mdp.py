@@ -146,7 +146,7 @@ class MDP():
         k = 0
         for dices in it:
             if dices[0]>k:
-                print(k)
+                #print(k)
                 k+=1
             state = DiceState(dices, 0, set())
             self.explore(state)
@@ -160,7 +160,7 @@ class MDP():
         k=0
         for dices in it:
             if dices[0]>k:
-                print(k)
+                #print(k)
                 k+=1
             prob = compute_prob(dices)
             state = DiceState(dices, 0, set())
