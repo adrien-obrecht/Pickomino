@@ -123,7 +123,7 @@ class Reinforce(Player):
                 G += R
                 G *= self.gamma
 
-            self.w = self.w + alpha/(h+10)*gradJ
+            self.w = self.w + alpha*gradJ
         return
     
     #evaluates the performance of the learning player over num_games games
