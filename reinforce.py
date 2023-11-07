@@ -78,8 +78,8 @@ class Reinforce(Player):
 
         for h in range(num_games):
             if h%100==0:
-                print(h)
-                print(self.w)
+                print("step:",h)
+                print("w:",self.w)
             
             game = GameState()
             rewards = []
@@ -122,6 +122,13 @@ class Reinforce(Player):
 
                 G += R
                 G *= self.gamma
+
+            norm = np.linalg.norm(gradJ)
+            
+            if (h%100==0):
+                print("gradient norm:",norm)
+
+            gradJ = gradJ/norm
 
             self.w = self.w + alpha*gradJ
         return

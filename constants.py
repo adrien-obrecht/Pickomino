@@ -1,3 +1,5 @@
+#constants for the game
+
 NUM_DICES = 4
 MIN_TILE = 11
 MAX_TILE = 18

@@ -2,11 +2,17 @@ from enum import Enum
 from constants import *
 
 class MoveType(Enum):
+    """
+    Types of move
+    """
     LOSE = 1
     STOP = 2
     CONTINUE = 3
 
 class Move:
+    """
+    Type of move with additionnal information like the score or the dice chosen
+    """
     def __init__(self, move_type: MoveType, tile=None, dice=None):
         assert isinstance(move_type, MoveType), "Invalid move type!"
 

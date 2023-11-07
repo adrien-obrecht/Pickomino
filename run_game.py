@@ -22,7 +22,6 @@ def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
             
             print(move)
             print()
-            #time.sleep(1)
 
         possible = game.make_move(move)
 
@@ -31,6 +30,6 @@ def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
             game.switch_turn()
             return game.player_turn
     if debug:
-        print("FIIIIINNNIIIIII")
+        print("End of the game")
     return game.get_winner()
 

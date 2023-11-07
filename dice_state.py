@@ -1,9 +1,12 @@
 import random
 
 class DiceState():
-    dices : tuple
-    score : int
-    used : set
+    """
+    Represents a dice roll.
+    """
+    dices : tuple #dices we got
+    score : int #score
+    used : set #dices already used
     def __init__(self, dices, score, used) -> None:
         self.dices = dices
         self.score = score 

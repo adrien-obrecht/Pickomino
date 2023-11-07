@@ -15,7 +15,7 @@ class AlphaBetaPlayer(Player):
         self.current_MDP : MDP = None
     
     def get_r(self,game : GameState):
-        #computes r with applying max
+        #computes r with APPLYING MAX
         player_index = int(game.player_turn.value) - 1 # Current player
         opponent_index = int(not player_index) # Opponent player
 
@@ -39,7 +39,6 @@ class AlphaBetaPlayer(Player):
                 maxi = max(maxi,-c)
                 r[i] = maxi
         #I guess the cost is -alpha*top_tile.worm
-        #print(r,c)
         return r,-c
 
     def act(self, game : GameState) -> Move:
@@ -52,6 +51,7 @@ class AlphaBetaPlayer(Player):
         #if we are at the first dices roll use the MDP
         if nb_dice==NUM_DICES:
             r,c = self.get_r(game)
+            # MEMOIZATION OVER (r,c) ---> NOT USED
             # if (tuple(r),c) in AlphaBetaPlayer.memRC:
             #     #print("reuse")
             #     self.current_MDP = AlphaBetaPlayer.memRC[(tuple(r),c)]

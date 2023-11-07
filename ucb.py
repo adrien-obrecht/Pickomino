@@ -7,6 +7,9 @@ from run_game import *
 from game_state import PlayerTurn
 
 def create_bandit_pairs(grid_size: int) -> List[Tuple[float, float]]:
+    """
+    Creates all pairs of (alpha,beta)
+    """
     pairs = []
 
     for a in np.linspace(0.0, 2.0, grid_size):
@@ -15,10 +18,13 @@ def create_bandit_pairs(grid_size: int) -> List[Tuple[float, float]]:
 
     return pairs
 
-def f(t : float):
-    return 1 + t * math.log(t)**2
+"""def f(t : float):
+    return 1 + t * math.log(t)**2"""
 
 def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[float, float]:
+    """
+    UCB algorithm
+    """
     bandit_pairs = create_bandit_pairs(grid_size)
     num_pairs = len(bandit_pairs)
     wins = [0] * num_pairs

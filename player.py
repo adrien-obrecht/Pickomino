@@ -3,6 +3,9 @@ from move import Move, MoveType
 from constants import *
 
 class Player:
+    """
+    Interface for a player
+    """
     def __init__(self):
         pass
 
@@ -10,6 +13,9 @@ class Player:
         pass
 
 class GreedyPlayer(Player):
+    """
+    Example of a greedy player with a basic strategy
+    """
     def __init__(self):
         super().__init__()
 

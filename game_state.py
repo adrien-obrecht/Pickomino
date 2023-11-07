@@ -4,6 +4,9 @@ from move import Move, MoveType
 from constants import *
 
 class Tile(Enum):
+    """
+    Position of a tile
+    """
     FACE_UP = 1
     FACE_DOWN = 2
     OWNED = 3
@@ -59,6 +62,9 @@ class GameState:
 
     
     def lose_tile(self):
+        """
+        makes the player whose turn it is loose a tile
+        """
         player_index = int(self.player_turn.value) - 1
         if len(self.player_tiles[player_index]) > 0: # Player has at least one tile
             tile_returned = self.player_tiles[player_index].pop()
@@ -107,10 +113,12 @@ class GameState:
                 self.player_tiles[player_index].append(tile)
         
             if self.grid[move.tile].status == Tile.FACE_UP:
+                #we just take the tile
                 self.grid[move.tile].status = Tile.OWNED
                 self.player_tiles[player_index].append(self.grid[move.tile])
             
             if self.grid[move.tile].status == Tile.FACE_DOWN:
+                #error
                 print(f"Can't choose tile {move.tile}, it is turned down")
                 return False
 
@@ -137,7 +145,6 @@ class GameState:
             return True
 
     def get_winner(self) -> PlayerTurn:
-        # TODO draws? -> not possible
         if not self.player_tiles[1]:
             return PlayerTurn.PLAYER_1
         if not self.player_tiles[0]:
@@ -152,7 +159,7 @@ class GameState:
         return PlayerTurn.PLAYER_2
     
     def possible_actions(self):
-        #returns the list of possible actions in the current game state, ie dices the player can pick and stop if possible
+        #returns the list of possible actions in the current game state, ie dices the player can pick, and stop if possible
         actions = [Move(MoveType.CONTINUE,dice=d) for d in self.dice_state.getChoices()]
         can_stop = False
         score = self.dice_state.score
@@ -160,7 +167,7 @@ class GameState:
         player_index = int(self.player_turn.value) - 1 # Current player
         opponent_index = int(not player_index) # Opponent player
 
-        #condition for stopping making sense
+        #condition for when stopping makes sense
         if score > MIN_TILE and 6 in self.dice_state.getUsedDices():
             tile = min(MAX_TILE,score)-MIN_TILE
 

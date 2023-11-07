@@ -2,22 +2,11 @@ from game_state import *
 import numpy as np
 
 def phi(state:GameState,action:Move):
-    #RETURNS a vector in R^n that represents 
 
     #action a is chosen w.p. proportionnal to exp(wT.phi(s,a))
     #wT.phi(s,a) should be very positive if good to take the action, very negative else
-    #phi(s,a) could be big actually (in size), no real need to think
-    #code everything in a numerical way, and then think about a good w0, or just let it be learned
-    """
-    state contains
-    -the grid
-    -player turn (nécessairement nous)
-    -dice state:
-        -score
-        -dice choices
-    -player piles
-    action est dans les dice choices ou STOP
-    """
+    #phi(s,a) could be big actually (in size)
+    
     dices = state.dice_state
     tab = np.zeros(10)
     """
@@ -31,7 +20,7 @@ def phi(state:GameState,action:Move):
     7 : nombre de dés used
     8 : value du coup si on peut voler une tile
     9 : ce qu'on perd si on perd
-
+    PLUS D'EXPLICATION DANS LE RAPPORT ET LORS DE LA PRESENTATION
     """
     #calcul de la plus petite tile prenable
     min_tile_up = None

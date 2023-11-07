@@ -9,7 +9,7 @@ from constants import *
 
 mem = {}
 def compute_prob(t):
-    # compute the probability of rolling the dices in t
+    # compute the probability of rolling the dices in the throw t
     if t in mem:
         return mem[t]
     n = len(t)
@@ -31,8 +31,12 @@ class MDP():
         self.c = c #value when lost
         self.r = r #reward vector
         self.value = {} #value of each state
-        self.opti = {} #optimal move at each state, None if terminal state
-        self.mem2 = {} #memorisation of value for a given number of dices
+        #optimal move at each state, None if terminal state
+        #a key is a State
+        self.opti = {}
+        #memorisation of value for a given number of dices, ie BEFORE rolling the dices
+        #a key is a score, a number of dices, and used dices
+        self.mem2 = {} 
 
     def evaluate(self, state : DiceState):
         """
@@ -45,8 +49,8 @@ class MDP():
             #did not get a worm
             return self.c
         else:
-            #print(max(state.getScore(),36)-21,self.r)
-            return self.r[min(state.getScore(),MAX_TILE)-MIN_TILE]#supposes that we used the max on r
+            #get the value in the reward vector
+            return self.r[min(state.getScore(),MAX_TILE)-MIN_TILE]
 
     def explore(self, state : DiceState):
         """
@@ -57,14 +61,12 @@ class MDP():
             return self.value[state]
 
         nb_dices = state.countDices()
-        # rolled = state.getDices()
-        # choices = rolled.difference(state.getUsedDices())
         choices = state.getChoices()
 
         # check for terminal state
         if nb_dices==0:
             # we gathered all the dices, we might have won
-            if state.score>=MIN_TILE and 6 in state.used:
+            if state.score>=MIN_TILE and 6 in state.used:#we won because we have a worm and a high enough score
                 self.opti[state] = Move(MoveType.STOP,tile=min(MAX_TILE,state.score)-MIN_TILE)
             else:
                 self.opti[state] = Move(MoveType.LOSE)
@@ -86,6 +88,7 @@ class MDP():
             count = state.getDiceCount(f)
             new_used = state.getUsedDices().copy()
             new_used.add(f)
+            #compute new score
             if f < 6:
                 new_score = state.getScore() + f * count
             else:
@@ -98,17 +101,10 @@ class MDP():
                 s = self.mem2[state2]
             
             else:
-                """dices = list(new_used)
-                for i in range(6):
-                    if i+1 not in dices:
-                        dices.append(i+1)"""
                 it = itertools.combinations_with_replacement([1,2,3,4,5,6], nb_dices-count)
+                #iterate over all possible dice rolls
                 for new_dices in it:
                     prob = compute_prob(new_dices)
-
-                    #reduce the number of states by making the dices rolled "more similar" when they are equivalent
-                    #m = min(new_used)
-                    #new_dices = tuple(m if value in new_used else value for value in new_dices)
 
                     new_state = DiceState(new_dices, new_score, new_used)
 
@@ -127,7 +123,6 @@ class MDP():
         if stop_value > max_value:
             self.value[state] = stop_value
             if state.score<21:#floating point error
-                #print(stop_value,max_value,state)
                 self.value[state] = max_value
                 self.opti[state] = Move(MoveType.CONTINUE, dice=max_idx)
             else:
@@ -170,5 +165,4 @@ class MDP():
             prob = compute_prob(dices)
             state = DiceState(dices, 0, set())
             p_total += prob * self.value[state]
-        # print(p_total)
         return p_total
