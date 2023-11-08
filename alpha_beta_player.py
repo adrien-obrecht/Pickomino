@@ -1,6 +1,6 @@
 from game_state import GameState, Tile
 from move import Move, MoveType
-from mdp import MDP
+from mdp2 import MDP2
 from player import Player
 from constants import *
 
@@ -12,7 +12,7 @@ class AlphaBetaPlayer(Player):
         self.alpha : float = alpha
         self.beta : float = beta
         self.mem_strats = {}
-        self.current_MDP : MDP = None
+        self.current_MDP : MDP2 = None
     
     def get_r(self,game : GameState):
         #computes r with APPLYING MAX
@@ -61,7 +61,7 @@ class AlphaBetaPlayer(Player):
             #     self.current_MDP.explore(dice_state)
             #     AlphaBetaPlayer.memRC[(tuple(r),c)] = self.current_MDP
             #no mem for now
-            self.current_MDP = MDP(c,r)
+            self.current_MDP = MDP2(c,r)
             self.current_MDP.explore(dice_state)
         
         # print("start dico")
@@ -74,19 +74,26 @@ class AlphaBetaPlayer(Player):
         move = self.current_MDP.opti[dice_state]
         #print("according to dico")
         #print(dice_state,move)
-        tile = move.tile
 
-        #case in which you need to find a lower tile: face down or owned but not on top
+        # If stopping is better, we choose the tile as we know the whole game
         if move.move_type == MoveType.STOP:
-            status = game.grid[tile].status
-            opponent_stack = game.player_tiles[opponent_index]
-            if status == Tile.FACE_DOWN or (status== Tile.OWNED and (len(opponent_stack) == 0 or opponent_stack[-1].index != move.tile)):
-                #find the actual tile that the player chooses
-                for i in range(tile,-1,-1):
-                    if game.grid[i].status==Tile.FACE_UP:
-                        return Move(MoveType.STOP, tile=i)
+            # We don't have a worm
+            if move.dice != 6 and 6 not in dice_state.used:
                 return Move(MoveType.LOSE)
 
+            dice = move.dice
+            score = dice_state.getScore() + min(move.dice, 5) * dice_state.getDiceCount(move.dice)
+            tile = min(score, MAX_TILE) - MIN_TILE
+            opponent_stack = game.player_tiles[opponent_index]
+
+            # We try to find a tile that fits
+            for i in range(tile,-1,-1):
+                status = game.grid[i].status
+                if status == Tile.FACE_UP:
+                    return Move(MoveType.STOP, tile=i, dice=dice)
+                if i == tile and status == Tile.OWNED and len(opponent_stack) != 0 and opponent_stack[-1].index == i:
+                    return Move(MoveType.STOP, tile=i, dice=dice)
+            return Move(MoveType.LOSE)
         return move
 
             

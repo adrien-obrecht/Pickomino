@@ -95,11 +95,13 @@ class GameState:
             player_index = int(self.player_turn.value) - 1 # Current player
             opponent_index = int(not player_index) # Opponent player 
 
-            if move.tile + MIN_TILE > self.dice_state.score:
-                print(f"Can't choose tile {move.tile} with a score of {self.dice_state.score}")
+            score = self.dice_state.score + min(move.dice, 5) * self.dice_state.getDiceCount(move.dice)
+
+            if move.tile + MIN_TILE > score:
+                print(f"Can't choose tile {move.tile} with a score of {score}")
                 return False
             
-            if 6 not in self.dice_state.used:
+            if 6 not in self.dice_state.used and move.dice != 6:
                 print(f"Can't choose tile {move.tile} with no worms")
                 return False
 
@@ -107,7 +109,7 @@ class GameState:
                 # we steal the tile from the opponent
                 opponent_stack = self.player_tiles[opponent_index]
                 if len(opponent_stack) == 0 or opponent_stack[-1].index != move.tile:
-                    print(f"Tile {move.tile} can't be stolen")
+                    print(f"Tile {move.tile} can't be stolen : {opponent_stack}")
                     return False
                 tile = self.player_tiles[opponent_index].pop()
                 self.player_tiles[player_index].append(tile)

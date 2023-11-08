@@ -1,6 +1,5 @@
 from player import Player
 from game_state import GameState, PlayerTurn
-import time
 
 def run_game(player1 : Player, player2 : Player, debug=False) -> PlayerTurn:
     """

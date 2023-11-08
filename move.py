@@ -30,6 +30,6 @@ class Move:
         if self.move_type == MoveType.LOSE:
             return "Lose"
         elif self.move_type == MoveType.STOP:
-            return f"Stop and pick tile {self.tile}"
+            return f"Stop with dice {self.dice} and pick tile {self.tile}"
         else: # continue
             return f"Continue with dice {self.dice}"
