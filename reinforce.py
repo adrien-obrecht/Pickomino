@@ -52,7 +52,8 @@ class Reinforce(Player):
             player_index = int(game.player_turn.value) - 1 # Current player
             opponent_index = int(not player_index) # Opponent player
             #ATTENTION AUX INDEX
-            score = game.dice_state.score 
+            score = game.dice_state.score + min(a.dice, 5) * game.dice_state.getDiceCount(a.dice) ####
+
             tile = min(MAX_TILE,score)-MIN_TILE
 
             status = game.grid[tile].status
@@ -60,17 +61,17 @@ class Reinforce(Player):
 
             
 
-            #repetition in the code
+            #finding the actual tile we pick
             if status == Tile.FACE_DOWN or (status== Tile.OWNED and (len(opponent_stack) == 0 or opponent_stack[-1].index != a.tile)):
                 #find the actual tile that the player chooses
                 found = False
                 for i in range(tile,-1,-1):
                     if game.grid[i].status==Tile.FACE_UP:
-                        move = Move(MoveType.STOP, tile=i)
+                        move = Move(MoveType.STOP, tile=i, dice=a.dice)
                         return move
                 return Move(MoveType.LOSE)
             
-            return Move(MoveType.STOP,tile=tile)
+            return Move(MoveType.STOP,tile=tile, dice=a.dice)
         
         return a
     

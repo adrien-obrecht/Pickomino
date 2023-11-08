@@ -1,5 +1,6 @@
 from game_state import *
 import numpy as np
+from constants import *
 
 def phi(state:GameState,action:Move):
 
@@ -8,18 +9,17 @@ def phi(state:GameState,action:Move):
     #phi(s,a) could be big actually (in size)
     
     dices = state.dice_state
-    tab = np.zeros(10)
+    tab = np.zeros(9)
     """
-    0 : gain de l'action (0 si stop)
+    0 : gain de l'action
     1 : à quel point c'est pressant de prendre un worm
     2 : à quel point on est loin d'avoir une tile
     3 : score si stop
     4 : à quel point il nous reste des dés
     5 : le numéro du dé
-    6 : le nombre de dés
-    7 : nombre de dés used
-    8 : value du coup si on peut voler une tile
-    9 : ce qu'on perd si on perd
+    6 : nombre de dés used
+    7 : value du coup si on peut voler une tile
+    8 : ce qu'on perd si on perd
     PLUS D'EXPLICATION DANS LE RAPPORT ET LORS DE LA PRESENTATION
     """
     #calcul de la plus petite tile prenable
@@ -34,32 +34,38 @@ def phi(state:GameState,action:Move):
     opponent_stack = state.player_tiles[opponent_index]
     player_stack = state.player_tiles[player_index]
 
-    if action.move_type==MoveType.STOP:
-        tab[0] = 0
+    d = action.dice
+
+    #on a beaucoup de poids sur STOP, peut être scale des choses
+    if action.move_type==MoveType.STOP:#choisi le dés d et s'arrête au tour d'après
+        #on a une tile et un dice parce qu'on s'arrête au tour d'après
+        score_after = dices.score+min(5,d)*dices.getDiceCount(d)
+        dice_count = dices.countDices() - dices.getDiceCount(d)
+        #on est dur que on a déjà un worm ou d est un worm
+
+        tab[0] = d*dices.getDiceCount(d) #gain du choix de d
         tab[1] = 0
-        tab[2] = MIN_TILE+min_tile_up-dices.score
-        tab[3] = dices.score
-        tab[4] = -dices.countDices() #on ne veut pas s'arrêter quand on a beacoup de dés
-        tab[5] = 0
-        tab[6] = 0
-        tab[7] = len(dices.getUsedDices()) #on veut s'arrêter quand on a beaucoup de dés utilisés
-        tab[8] = (opponent_stack[-1].index+1) if len(opponent_stack)>0 and opponent_stack[-1].index==dices.score-MIN_TILE else 0
-        if (min_tile_up+MIN_TILE>=dices.score):
-            tab[9] = -(player_stack[-1].index+1) if len(player_stack)>0 else 0
+        tab[2] = score_after-(MIN_TILE+min_tile_up) #à quel point on est loin d'avoir une tile
+        tab[3] = score_after #on veut s'arrêter sur un bon score
+        tab[4] = -dice_count #on ne veut pas s'arrêter quand on a beacoup de dés
+        tab[5] = d #on veut pick un bon dé
+        tab[6] = len(dices.getUsedDices())+1 #on veut s'arrêter quand on a beaucoup de dés utilisés
+        tab[7] = (opponent_stack[-1].index+1) if len(opponent_stack)>0 and opponent_stack[-1].index==score_after-MIN_TILE else 0 #valeur de la tile qu'on peut voler
+        if (min_tile_up+MIN_TILE>=score_after):#valeur de ce qu'on perd si on perd
+            tab[8] = -(player_stack[-1].index+1) if len(player_stack)>0 else 0
         else:
-            tab[9] = 1
+            tab[8] = 1
 
     elif action.move_type==MoveType.CONTINUE:  #continue et choisi le dés d
-        d = action.dice
-        tab[0] = d*dices.getDiceCount(d)
-        tab[1] = -dices.countDices() if d==6 else 0# si il y a beaucoup de dés il n'est pas urgent de prendre un worm
+        
+        tab[0] = d*dices.getDiceCount(d) #gain du choix de d
+        tab[1] = 0 #-dices.countDices() if d==6 else 0# si il y a beaucoup de dés il n'est pas urgent de prendre un worm
         tab[2] = 0
         tab[3] = 0
-        tab[4] = dices.countDices() - dices.getDiceCount(d) #plus on a de dés mieux c'est
-        tab[5] = d
-        tab[6] = dices.getDiceCount(d)
-        tab[7] = -len(dices.getUsedDices())
-        tab[8] = 0
-        tab[9] = 0
+        tab[4] = -dices.getDiceCount(d) #on ne veut pas consommer trop de dés
+        tab[5] = d #on veut pick un bon dé
+        tab[6] = -len(dices.getUsedDices()) #on ne veut pas continuer quand on a beaucoup de dés utilisés
+        tab[7] = 0 #on ne peut pas voler de tile
+        tab[8] = (player_stack[-1].index+1) if len(player_stack)>0 else 0 #moins pas de risque de perdre notre tile si on continue
 
     return tab

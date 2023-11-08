@@ -161,26 +161,29 @@ class GameState:
         return PlayerTurn.PLAYER_2
     
     def possible_actions(self):
-        #returns the list of possible actions in the current game state, ie dices the player can pick, and stop if possible
+        #returns the list of possible actions in the current game state, ie dices the player can pick, and stop if possible after the move
         actions = [Move(MoveType.CONTINUE,dice=d) for d in self.dice_state.getChoices()]
-        can_stop = False
+        
         score = self.dice_state.score
 
         player_index = int(self.player_turn.value) - 1 # Current player
         opponent_index = int(not player_index) # Opponent player
 
-        #condition for when stopping makes sense
-        if score > MIN_TILE and 6 in self.dice_state.getUsedDices():
-            tile = min(MAX_TILE,score)-MIN_TILE
+        #see if we can stop after choosing a dice
+        for d in self.dice_state.getChoices():
+            score_after = score+min(5,d)*self.dice_state.getDiceCount(d)
+            #makes sense to stop
+            if score_after > MIN_TILE and (6 in self.dice_state.getUsedDices() or d==6):
+                #choosing a tile
+                tile = min(MAX_TILE,score_after)-MIN_TILE
 
-            opponent_stack = self.player_tiles[opponent_index]
-            if len(opponent_stack) > 0 and opponent_stack[-1].index == tile:
-                actions.append(Move(MoveType.STOP,tile=tile))
-                return actions
-
-            for i in range(tile, -1,-1):
-                if self.grid[i].status == Tile.FACE_UP:
-                    actions.append(Move(MoveType.STOP,tile=i))
-                    return actions
+                opponent_stack = self.player_tiles[opponent_index]
+                if len(opponent_stack) > 0 and opponent_stack[-1].index == tile:
+                    actions.append(Move(MoveType.STOP,tile=tile,dice=d))
+                else:
+                    for i in range(tile, -1,-1):
+                        if self.grid[i].status == Tile.FACE_UP:
+                            actions.append(Move(MoveType.STOP,tile=i,dice=d))
+                            break
         
         return actions
