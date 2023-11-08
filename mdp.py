@@ -36,7 +36,8 @@ class MDP():
         self.opti = {}
         #memorisation of value for a given number of dices, ie BEFORE rolling the dices
         #a key is a score, a number of dices, and used dices
-        self.mem2 = {} 
+        self.value_diceless = {} 
+        self.should_stop = {}
 
     def evaluate(self, state : DiceState):
         """
@@ -51,10 +52,41 @@ class MDP():
         else:
             #get the value in the reward vector
             return self.r[min(state.getScore(),MAX_TILE)-MIN_TILE]
+        
+    def explore_diceless(self, state2):
+        if state2 in self.value_diceless:#memoization before rolling the dices
+            return self.value_diceless[state2]
+            
+        score, tuple_used, nb_dices = state2
+        used = set(tuple_used)
+
+        # iterate over all possible dice rolls
+        continue_value = 0
+        it = itertools.combinations_with_replacement([1,2,3,4,5,6], nb_dices)
+
+        for new_dices in it:
+            prob = compute_prob(new_dices)
+
+            new_state = DiceState(new_dices, score, used)
+
+            new_value = self.explore(new_state)
+            
+            continue_value += new_value * prob
+        
+        stop_value = self.evaluate(DiceState((), score, used))
+
+        if continue_value > stop_value + EPSILON:
+            self.value_diceless[state2] = continue_value
+            self.should_stop[state2] = False
+        else:
+            self.value_diceless[state2] = stop_value
+            self.should_stop[state2] = True
+        return self.value_diceless[state2]
+
 
     def explore(self, state : DiceState):
         """
-        Dynamic programming starting with state
+        Dynamic programming starting with a dice state, ie after rolling the dices
         """
         # memoization
         if state in self.value:
@@ -63,13 +95,9 @@ class MDP():
         nb_dices = state.countDices()
         choices = state.getChoices()
 
-        # check for terminal state
+        # if we have no dice we lost
         if nb_dices==0:
-            # we gathered all the dices, we might have won
-            if state.score>=MIN_TILE and 6 in state.used:#we won because we have a worm and a high enough score
-                self.opti[state] = Move(MoveType.STOP,tile=min(MAX_TILE,state.score)-MIN_TILE)
-            else:
-                self.opti[state] = Move(MoveType.LOSE)
+            self.opti[state] = Move(MoveType.LOSE)
             self.value[state] = self.evaluate(state)
             return self.value[state]
 
@@ -80,9 +108,11 @@ class MDP():
             return self.value[state]
 
 
-        max_value = -(1<<30) # don't put zero because the maximum value can be negative
-        max_idx = None
+        best_expected = -(1<<30) # don't put zero because the maximum value can be negative
+        best_dice = None
+        best_state = None
 
+        #maximum over all choices
         for f in choices:
             # choose face f
             count = state.getDiceCount(f)
@@ -94,46 +124,20 @@ class MDP():
             else:
                 new_score = state.getScore() + 5 * count
 
-            s = 0
-
             state2 = (new_score, tuple(new_used), nb_dices-count)
-            if state2 in self.mem2:#memoization before rolling the dices
-                s = self.mem2[state2]
-            
-            else:
-                it = itertools.combinations_with_replacement([1,2,3,4,5,6], nb_dices-count)
-                #iterate over all possible dice rolls
-                for new_dices in it:
-                    prob = compute_prob(new_dices)
+            s = self.explore_diceless(state2)
 
-                    new_state = DiceState(new_dices, new_score, new_used)
-
-                    new_value = self.explore(new_state)
-                    
-                    s += new_value * prob
-
-                self.mem2[state2] = s
-
-            if s > max_value:
-                max_value = s
-                max_idx = f
+            if s > best_expected:
+                best_state = state2
+                best_expected = s
+                best_dice = f
                 
-        stop_value = self.evaluate(state)
-
-        if stop_value > max_value:
-            self.value[state] = stop_value
-            if state.score<21:#floating point error
-                self.value[state] = max_value
-                self.opti[state] = Move(MoveType.CONTINUE, dice=max_idx)
-            else:
-                #we return the truncated value of the score, then the player will find the best tile corresponding to this stop_value
-                #because the player has the game state and we don't
-                best_tile = min(state.getScore(),MAX_TILE)-MIN_TILE
-
-                self.opti[state] = Move(MoveType.STOP, tile=best_tile)
+        self.value[state] = best_expected
+        if self.should_stop[best_state]:
+            self.opti[state] = Move(MoveType.STOP, dice=best_dice, tile=0) #0 is arbritrary, the choice of the tile is done by the player
         else:
-            self.value[state] = max_value
-            self.opti[state] = Move(MoveType.CONTINUE, dice=max_idx)
+            self.opti[state] = Move(MoveType.CONTINUE, dice=best_dice)
+        
         return self.value[state]
 
 

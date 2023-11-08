@@ -2,7 +2,7 @@ import random
 
 class DiceState():
     """
-    Represents a dice roll.
+    Represents a dice roll, with a bunch of utility functions
     """
     dices : tuple #dices we got
     score : int #score

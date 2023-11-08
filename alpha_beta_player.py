@@ -1,21 +1,22 @@
 from game_state import GameState, Tile
 from move import Move, MoveType
-from mdp2 import MDP2
+from mdp import MDP
 from player import Player
 from constants import *
 
 class AlphaBetaPlayer(Player):
+    """Class for a player following the alpha-beta strategy"""
 
-    memRC = {}
+    #no memoization over r,c because consummes too much memory and not enough cache hits
 
     def __init__(self,alpha,beta):
         self.alpha : float = alpha
         self.beta : float = beta
         self.mem_strats = {}
-        self.current_MDP : MDP2 = None
+        self.current_MDP : MDP = None
     
     def get_r(self,game : GameState):
-        #computes r with APPLYING MAX
+        #computes r with APPLYING MAX, but not on all indices because you need to get the exact score to steal a tile
         player_index = int(game.player_turn.value) - 1 # Current player
         opponent_index = int(not player_index) # Opponent player
 
@@ -51,29 +52,10 @@ class AlphaBetaPlayer(Player):
         #if we are at the first dices roll use the MDP
         if nb_dice==NUM_DICES:
             r,c = self.get_r(game)
-            # MEMOIZATION OVER (r,c) ---> NOT USED
-            # if (tuple(r),c) in AlphaBetaPlayer.memRC:
-            #     #print("reuse")
-            #     self.current_MDP = AlphaBetaPlayer.memRC[(tuple(r),c)]
-            #     self.current_MDP.explore(dice_state)
-            # else:
-            #     self.current_MDP = MDP(c,r)
-            #     self.current_MDP.explore(dice_state)
-            #     AlphaBetaPlayer.memRC[(tuple(r),c)] = self.current_MDP
-            #no mem for now
-            self.current_MDP = MDP2(c,r)
+            self.current_MDP = MDP(c,r)
             self.current_MDP.explore(dice_state)
         
-        # print("start dico")
-        # for i in self.current_MDP.opti:
-        #     print(i,self.current_MDP.opti[i])
-        # print("fin dico")
-        #else the MDP is already computed
-        # if dice_state not in self.current_MDP.opti:
-        #     print("key error")
         move = self.current_MDP.opti[dice_state]
-        #print("according to dico")
-        #print(dice_state,move)
 
         # If stopping is better, we choose the tile as we know the whole game
         if move.move_type == MoveType.STOP:
@@ -82,7 +64,7 @@ class AlphaBetaPlayer(Player):
                 return Move(MoveType.LOSE)
 
             dice = move.dice
-            score = dice_state.getScore() + min(move.dice, 5) * dice_state.getDiceCount(move.dice)
+            score = dice_state.getScore() + min(move.dice, 5) * dice_state.getDiceCount(move.dice)#score after choosing dice d
             tile = min(score, MAX_TILE) - MIN_TILE
             opponent_stack = game.player_tiles[opponent_index]
 

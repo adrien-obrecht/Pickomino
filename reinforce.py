@@ -10,13 +10,14 @@ class FeatureMap:
         pass
 
 class Reinforce(Player):
-    #uses the REINFORCE algorithm (policy gradient) against a fixed alpha-beta adversary
+    """uses the REINFORCE algorithm (policy gradient) against a fixed alpha-beta adversary
+    we followed the algorithm explained in class"""
 
     def __init__(self,w0,alpha,beta,fm,gamma):
         self.w =  w0
         self.N = len(w0)
         self.adv = AlphaBetaPlayer(alpha,beta)
-        self.phi = fm
+        self.phi = fm #feature map
         self.gamma = gamma
 
     def pi(self,state:GameState):
@@ -26,12 +27,12 @@ class Reinforce(Player):
         p = np.zeros(len(actions))
         for i in range(len(actions)):
             a = actions[i]
-            p[i] = np.exp(np.sum(self.w*self.phi(state,a)))
+            p[i] = np.exp(np.sum(self.w*self.phi(state,a))) #exp(wT.phi(s,a))
             sum += p[i]
         p /= sum
         return (actions,p)
 
-    def grad_log_pi(self,state:GameState,move:Move):
+    def grad_log_pi(self,state:GameState,move:Move): #compute the gradient of the log of the probability
         res = self.phi(state,move)
         actions, proba = self.pi(state)
         for i in range(len(actions)):
@@ -39,20 +40,22 @@ class Reinforce(Player):
         return res
     
     def act(self,game:GameState) -> Move:
-        #the learning player plays
+        #the learning player plays according to its probability distribution parametrized by w
         actions,proba = self.pi(game)
-        #print(proba)
+        
         if len(proba)==0:
             return Move(MoveType.LOSE)
         
+        #random choice
         a = random.choices(actions,weights=proba,k=1)[0]
 
         if a.move_type==MoveType.STOP:
-            #we need a score
+            
             player_index = int(game.player_turn.value) - 1 # Current player
             opponent_index = int(not player_index) # Opponent player
-            #ATTENTION AUX INDEX
-            score = game.dice_state.score + min(a.dice, 5) * game.dice_state.getDiceCount(a.dice) ####
+            
+            #computing the score
+            score = game.dice_state.score + min(a.dice, 5) * game.dice_state.getDiceCount(a.dice)
 
             tile = min(MAX_TILE,score)-MIN_TILE
 
@@ -76,12 +79,13 @@ class Reinforce(Player):
         return a
     
     def train(self, num_games, alpha):
-
+        #trains the player for num_games games with a step size of alpha
         for h in range(num_games):
             if h%100==0:
                 print("step:",h)
                 print("w:",self.w)
             
+            #playing a game
             game = GameState()
             rewards = []
             gradJ = np.zeros(self.N)
@@ -104,6 +108,7 @@ class Reinforce(Player):
                     winner = game.player_turn
                     break
             
+            #updating w by computing the gradient
             if not(winner):
                 winner = game.get_winner()
             
@@ -129,13 +134,13 @@ class Reinforce(Player):
             if (h%100==0):
                 print("gradient norm:",norm)
 
-            gradJ = gradJ/norm
-            #/np.sqrt(h/100+1)
-
+            gradJ = gradJ/norm #normalizing the gradient
+            
+            #updating w
             self.w = self.w + alpha*gradJ
         return
     
-    #evaluates the performance of the learning player over num_games games
+    #evaluates the performance of the learning player over num_games games by playing against the alpha-beta player
     def evaluate(self, num_games, debug=False):
         nb_wins = 0
 

@@ -38,7 +38,7 @@ class GameState:
         self.grid : list[TileState] = [TileState(i, i//STEP_SIZE + 1) for i in range(NUM_TILES)]
         self.player_turn : PlayerTurn = PlayerTurn.PLAYER_1
         self.dice_state : DiceState = DiceState(generate_random_dices(NUM_DICES), 0, set())
-        self.player_tiles : tuple[list[TileState], list[TileState]] = [[], []]
+        self.player_tiles : tuple[list[TileState], list[TileState]] = [[], []] #pile of tile of each player
         
     def __repr__(self):
         r = ""
@@ -63,7 +63,7 @@ class GameState:
     
     def lose_tile(self):
         """
-        makes the player whose turn it is loose a tile
+        makes the player whose turn it is loose a tile (put it back in the game and modify the board)
         """
         player_index = int(self.player_turn.value) - 1
         if len(self.player_tiles[player_index]) > 0: # Player has at least one tile
@@ -143,7 +143,7 @@ class GameState:
             self.dice_state.used.add(move.dice)
             dice_score = min(5, move.dice)
             self.dice_state.score += n * dice_score
-            self.dice_state.dices = generate_random_dices(len(self.dice_state.dices) - n)#modifies the dictionary key
+            self.dice_state.dices = generate_random_dices(len(self.dice_state.dices) - n)
             return True
 
     def get_winner(self) -> PlayerTurn:
@@ -161,7 +161,7 @@ class GameState:
         return PlayerTurn.PLAYER_2
     
     def possible_actions(self):
-        #returns the list of possible actions in the current game state, ie dices the player can pick, and stop if possible after the move
+        #returns the list of possible actions in the current game state, ie dices the player can pick, and stop if possible after picking a dice
         actions = [Move(MoveType.CONTINUE,dice=d) for d in self.dice_state.getChoices()]
         
         score = self.dice_state.score

@@ -8,7 +8,7 @@ from game_state import PlayerTurn
 
 def create_bandit_pairs(grid_size: int) -> List[Tuple[float, float]]:
     """
-    Creates all pairs of (alpha,beta)
+    Creates all pairs of (alpha,beta) for a grid of side grid_size
     """
     pairs = []
 
@@ -17,9 +17,6 @@ def create_bandit_pairs(grid_size: int) -> List[Tuple[float, float]]:
             pairs.append((a, b))
 
     return pairs
-
-"""def f(t : float):
-    return 1 + t * math.log(t)**2"""
 
 def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[float, float]:
     """
@@ -64,6 +61,7 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[flo
 
     best_pair = bandit_pairs[np.argmax(probs)]
 
+    #print all winrates
     print("Probabilities:")
     for i in range(num_pairs):
         print(bandit_pairs[i], probs[i])

@@ -14,7 +14,7 @@ class Player:
 
 class GreedyPlayer(Player):
     """
-    Example of a greedy player with a basic strategy
+    Example of a greedy player with a basic strategy to test rungame
     """
     def __init__(self):
         super().__init__()

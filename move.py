@@ -9,6 +9,11 @@ class MoveType(Enum):
     STOP = 2
     CONTINUE = 3
 
+"""Types of moves are:
+- picking a dice and continuing to play
+- picking a dice and stopping right after
+- loosing"""
+
 class Move:
     """
     Type of move with additionnal information like the score or the dice chosen
