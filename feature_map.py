@@ -9,7 +9,7 @@ def phi(state:GameState,action:Move):
     #phi(s,a) could be big actually (in size)
     
     dices = state.dice_state
-    tab = np.zeros(9)
+    tab = np.zeros(NUM_FEATURES)
     """
     0 : gain de l'action
     1 : à quel point c'est pressant de prendre un worm
@@ -55,17 +55,40 @@ def phi(state:GameState,action:Move):
             tab[8] = -(player_stack[-1].index+1) if len(player_stack)>0 else 0
         else:
             tab[8] = 1
+        tab[9] = 0
+        # tab[0] = d*dices.getDiceCount(d)#gain du choix de d
+        # tab[1] = score_after-(MIN_TILE+min_tile_up) #à quel point on est loin d'avoir une tile
+        # tab[2] = score_after #on veut s'arrêter sur un bon score
+        # tab[3] = -dice_count #on ne veut pas s'arrêter quand on a beacoup de dés
+        # tab[4] = d #on veut pick un bon dé
+        # tab[5] = len(dices.getUsedDices())+1 #on veut s'arrêter quand on a beaucoup de dés utilisés
+        # tab[6] = (opponent_stack[-1].index+1) if len(opponent_stack)>0 and opponent_stack[-1].index==score_after-MIN_TILE else 0 #valeur de la tile qu'on peut voler
+        # if (min_tile_up+MIN_TILE>=score_after):#valeur de ce qu'on perd si on perd
+        #     tab[7] = -(player_stack[-1].index+1) if len(player_stack)>0 else 0
+        # else:
+        #     tab[7] = 1
+        
+
+        
 
     elif action.move_type==MoveType.CONTINUE:  #continue et choisi le dés d
-        
+        #-dices.countDices() if d==6 else 0# si il y a beaucoup de dés il n'est pas urgent de prendre un worm
+
         tab[0] = d*dices.getDiceCount(d) #gain du choix de d
-        tab[1] = 0 #-dices.countDices() if d==6 else 0# si il y a beaucoup de dés il n'est pas urgent de prendre un worm
+        tab[1] = -dices.getDiceCount(d) #on ne veut pas consommer trop de dés
         tab[2] = 0
         tab[3] = 0
-        tab[4] = -dices.getDiceCount(d) #on ne veut pas consommer trop de dés
+        tab[4] = dices.countDices() #on veut continuer si on a des dés
         tab[5] = d #on veut pick un bon dé
         tab[6] = -len(dices.getUsedDices()) #on ne veut pas continuer quand on a beaucoup de dés utilisés
         tab[7] = 0 #on ne peut pas voler de tile
-        tab[8] = (player_stack[-1].index+1) if len(player_stack)>0 else 0 #moins pas de risque de perdre notre tile si on continue
+        tab[8] = 0
+        tab[9] = (player_stack[-1].index+1) if len(player_stack)>0 else 0 #moins pas de risque de perdre notre tile si on continue
+        # tab[8] = d*dices.getDiceCount(d) #gain du choix de d
+        # tab[9] = -dices.getDiceCount(d) #on ne veut pas consommer trop de dés
+        # tab[10] = dices.countDices() #on veut continuer si on a des dés
+        # tab[11] = d #on veut pick un bon dé
+        # tab[12] = -len(dices.getUsedDices()) #on ne veut pas continuer quand on a beaucoup de dés utilisés
+        # tab[13] = (player_stack[-1].index+1) if len(player_stack)>0 else 0 #moins pas de risque de perdre notre tile si on continue
 
     return tab

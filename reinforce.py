@@ -130,6 +130,7 @@ class Reinforce(Player):
                 print("gradient norm:",norm)
 
             gradJ = gradJ/norm
+            #/np.sqrt(h/100+1)
 
             self.w = self.w + alpha*gradJ
         return
