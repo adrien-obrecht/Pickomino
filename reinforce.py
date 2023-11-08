@@ -18,7 +18,7 @@ class Reinforce(Player):
         self.N = len(w0)
         self.adv = AlphaBetaPlayer(alpha,beta)
         self.phi = fm #feature map
-        self.gamma = gamma
+        self.gamma = gamma #inflation
 
     def pi(self,state:GameState):
         #returns the probability distribution other possible actions
