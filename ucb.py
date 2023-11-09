@@ -18,18 +18,21 @@ def create_bandit_pairs(grid_size: int) -> List[Tuple[float, float]]:
 
     return pairs
 
-def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[float, float]:
+import matplotlib.pyplot as plt
+from IPython.display import clear_output
+import time
+
+def simulate_games_ucb(p : Player, grid_size : int, num_games: int, debug : bool = False) -> Tuple[Tuple[float, float], float]:
     """
     UCB algorithm
     """
     bandit_pairs = create_bandit_pairs(grid_size)
     num_pairs = len(bandit_pairs)
-    wins = [0] * num_pairs
-    counts = [0] * num_pairs
-    
+    wins = np.zeros(num_pairs, dtype=np.float64)
+    counts = np.zeros(num_pairs, dtype=np.float64)
+
     for t in range(1,num_games+1):
         # Select the pair with the highest upper confidence bound
-        print("[{}]".format(t),end="")
         ucb_values = []
         for i in range(num_pairs):
             if counts[i]==0:
@@ -47,11 +50,26 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[flo
         winner = run_game(adversary, p)
 
         counts[best_idx] += 1
+
+
         if winner == PlayerTurn.PLAYER_1:
             wins[best_idx] += 1
-            print(f"Pair {best_pair} won. Winrate: of {wins[best_idx] / counts[best_idx]:.02f} ({wins[best_idx]} / {counts[best_idx]})")
+            if debug:
+                print(f"[{t}]Pair {best_pair} won. Winrate: of {wins[best_idx] / counts[best_idx]:.02f} ({wins[best_idx]} / {counts[best_idx]})")
         else:
-            print(f"Pair {best_pair} lost. Winrate: of {wins[best_idx] / counts[best_idx]:.02f} ({wins[best_idx]} / {counts[best_idx]})")
+            if debug:
+                print(f"[{t}]Pair {best_pair} lost. Winrate: of {wins[best_idx] / counts[best_idx]:.02f} ({wins[best_idx]} / {counts[best_idx]})")
+            
+        if t % 10 == 0:
+            # Clear the output to make room for the next plot
+            clear_output(wait=True)
+            # Update the plot
+            grid = np.divide(wins, counts, out=np.zeros_like(wins, dtype=np.float64), where=counts!=0)
+            plt.imshow(grid.reshape((grid_size, grid_size)), interpolation="bicubic", extent=[0, 2, 0, 2])
+            plt.colorbar()
+            plt.show()
+            time.sleep(0.1)
+
 
 
     # Return the pair with the highest winrate
@@ -61,14 +79,16 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int) -> Tuple[flo
 
     best_pair = bandit_pairs[np.argmax(probs)]
 
-    #print all winrates
-    print("Probabilities:")
-    for i in range(num_pairs):
-        print(bandit_pairs[i], probs[i])
+    if debug:
+        #print all winrates
+        print("Probabilities:")
+        for i in range(num_pairs):
+            print(bandit_pairs[i], probs[i])
     
-    print(f"The best pair is {best_pair}, that wins with probability {max(probs)}")
+        print(f"The best pair is {best_pair}, that wins with probability {max(probs)}")
 
-    return best_pair
+    return (best_pair, max(probs))
+
 
 
 

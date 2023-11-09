@@ -1,8 +1,15 @@
 #constants for the game
 
-NUM_DICES = 8
-MIN_TILE = 21
-MAX_TILE = 36
+SMALL_BOARD = True
+
+if SMALL_BOARD:
+    NUM_DICES = 4
+    MIN_TILE = 11
+    MAX_TILE = 21
+else:
+    NUM_DICES = 8
+    MIN_TILE = 21
+    MAX_TILE = 36
 NUM_TILES = MAX_TILE-MIN_TILE+1
 STEP_SIZE = NUM_TILES//4
 EPSILON=1e-5
