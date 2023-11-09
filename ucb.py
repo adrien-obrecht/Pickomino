@@ -40,10 +40,7 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int, debug : bool
             else:
                 prob = wins[i] / counts[i]
                 coeff = math.sqrt(2 * math.log(t) / counts[i])
-                if t < grid_size * grid_size * 0: # We first evaluate 0 times each cell
-                    ucb_values.append(coeff)
-                else:
-                    ucb_values.append(prob + coeff)
+                ucb_values.append(prob + coeff)
 
         best_idx = np.argmax(ucb_values)
         best_pair = bandit_pairs[best_idx]
@@ -63,7 +60,7 @@ def simulate_games_ucb(p : Player, grid_size : int, num_games: int, debug : bool
             if debug:
                 print(f"[{t}]Pair {best_pair} lost. Winrate: of {wins[best_idx] / counts[best_idx]:.02f} ({wins[best_idx]} / {counts[best_idx]})")
             
-        if t % 1 == 0:
+        if t % 10 == 0:
             # Clear the output to make room for the next plot
             clear_output(wait=True)
             # Update the plot
